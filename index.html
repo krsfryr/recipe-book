@@ -280,25 +280,69 @@ function stepIngs(r, stepText){
 }
 function setupSwipe(){
   const el = $('#cook');
-  let sx = 0, sy = 0, tracking = false;
+  let trackId = null, sx = 0, sy = 0, dx = 0, dragging = false, locked = false;
+  const body = () => el.querySelector('.cbody');
+  const touchById = (list) => { for (let i = 0; i < list.length; i++) if (list[i].identifier === trackId) return list[i]; return null; };
   el.addEventListener('touchstart', e => {
-    if (e.touches.length !== 1) return;
-    sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+    if (trackId !== null) return;
+    const t = e.touches[0];
+    trackId = t.identifier; sx = t.clientX; sy = t.clientY; dx = 0; dragging = true; locked = false;
+    const b = body(); if (b) b.style.transition = 'none';
   }, {passive: true});
-  el.addEventListener('touchend', e => {
-    if (!tracking) return; tracking = false;
-    const dx = e.changedTouches[0].clientX - sx;
-    const dy = e.changedTouches[0].clientY - sy;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && sel && sel.instructions) {
-      if (dx < 0) cookNext(); else cookPrev();
+  el.addEventListener('touchmove', e => {
+    if (!dragging) return;
+    const t = touchById(e.touches); if (!t) return;
+    dx = t.clientX - sx; const dy = t.clientY - sy;
+    if (!locked) {
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.5) locked = true;
+      else if (Math.abs(dy) > 12) { dragging = false; trackId = null; return; }
     }
+    if (locked) {
+      if (e.cancelable) e.preventDefault();
+      const b = body(); if (b) b.style.transform = 'translateX(' + dx + 'px)';
+    }
+  }, {passive: false});
+  const finish = () => {
+    if (!dragging) return; dragging = false; trackId = null;
+    const b = body(); if (!b || !sel || !sel.instructions) return;
+    const w = el.clientWidth || 320;
+    const total = sel.instructions.length;
+    const atStart = step === 0 && dx > 0;
+    const atEnd = step >= total && dx < 0;
+    const go = locked && !atStart && !atEnd && Math.abs(dx) > Math.max(70, w * 0.22);
+    b.style.transition = 'transform .28s cubic-bezier(.2,.8,.25,1)';
+    if (go) {
+      const dir = dx < 0 ? 1 : -1;
+      b.style.transform = 'translateX(' + (dir * -w) + 'px)';
+      setTimeout(() => {
+        suppressAnim = true;
+        if (dir === 1) cookNext(); else cookPrev();
+        const nb = body();
+        if (nb) {
+          nb.style.transition = 'none';
+          nb.style.transform = 'translateX(' + (dir * w) + 'px)';
+          void nb.offsetWidth;
+          nb.style.transition = 'transform .28s cubic-bezier(.2,.8,.25,1)';
+          nb.style.transform = '';
+          setTimeout(() => { nb.style.transition = ''; }, 300);
+        }
+      }, 290);
+    } else {
+      b.style.transform = '';
+      setTimeout(() => { b.style.transition = ''; }, 300);
+    }
+  };
+  el.addEventListener('touchend', finish, {passive: true});
+  el.addEventListener('touchcancel', () => {
+    dragging = false; trackId = null;
+    const b = body(); if (b) { b.style.transition = ''; b.style.transform = ''; }
   }, {passive: true});
 }
 function renderCook(){
   const total = sel.instructions.length;
   const done = step >= total;
-  const animCls = stepDir === 1 ? ' anim-next' : stepDir === -1 ? ' anim-prev' : '';
-  stepDir = 0;
+  const animCls = suppressAnim ? '' : (stepDir === 1 ? ' anim-next' : stepDir === -1 ? ' anim-prev' : '');
+  suppressAnim = false; stepDir = 0;
   const ings = done ? [] : stepIngs(sel, sel.instructions[step]);
   const allIn = ings.length > 0 && ings.every(i => checked.has(i));
   $('#cook').innerHTML = `
@@ -319,6 +363,7 @@ function renderCook(){
       </div>`}`;
 }
 let stepDir = 0;
+let suppressAnim = false;
 function cookNext(){ stepDir = 1; step++; renderCook(); setHash(); }
 function cookPrev(){ if (step > 0) { stepDir = -1; step--; renderCook(); setHash(); } }
 function exitCook(){ $('#cook').style.display = 'none'; setHash(); }
