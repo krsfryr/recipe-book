@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recipe Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#FAF5EC;--card:#FFFDF8;--ink:#211A12;--muted:#7A6F5F;--terra:#C2410C;--terra-d:#9A340A;--green:#2F4A33;--line:#E9DFCE;--soft:#F1E8D6;--pillbg:#FDEADF;--pilltext:#C2410C}
+@media (prefers-color-scheme: dark){:root{--cream:#1C1917;--card:#292420;--ink:#F5EFE4;--muted:#A89E8C;--terra:#E8652F;--terra-d:#FF7A45;--green:#7FB069;--line:#3D362E;--soft:#3A332B;--pillbg:#3A2A22;--pilltext:#F0925A}}
+[data-theme="light"]{--cream:#FAF5EC;--card:#FFFDF8;--ink:#211A12;--muted:#7A6F5F;--terra:#C2410C;--terra-d:#9A340A;--green:#2F4A33;--line:#E9DFCE;--soft:#F1E8D6;--pillbg:#FDEADF;--pilltext:#C2410C}
+[data-theme="dark"]{--cream:#1C1917;--card:#292420;--ink:#F5EFE4;--muted:#A89E8C;--terra:#E8652F;--terra-d:#FF7A45;--green:#7FB069;--line:#3D362E;--soft:#3A332B;--pillbg:#3A2A22;--pilltext:#F0925A}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"DM Sans",system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--ink);-webkit-tap-highlight-color:transparent}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.top{position:sticky;top:0;z-index:10;background:var(--cream);padding:18px 18px 10px;border-bottom:1px solid var(--line)}
+.toprow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.top h1{font-family:"Fraunces",Georgia,serif;font-size:30px;font-weight:700;letter-spacing:-.5px}
+.top p{color:var(--muted);font-size:14px;margin-top:2px}
+.theme{flex:none;font-size:14px;font-weight:700;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card)}
+.search{margin-top:14px;display:flex;gap:8px}
+.search input{flex:1;font-size:16px;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);outline:none}
+.search input:focus{border-color:var(--terra)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 18px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-size:14px;font-weight:500}
+.chip.on{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.wrap{max-width:720px;margin:0 auto;padding:6px 18px 40px}
+.count{color:var(--muted);font-size:13px;padding:10px 0 4px}
+.section-title{font-family:"Fraunces",Georgia,serif;font-size:22px;margin:26px 0 2px}
+.section-sub{color:var(--muted);font-size:14px;margin-bottom:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin:12px 0;cursor:pointer;transition:transform .12s ease, box-shadow .12s ease}
+.card:active{transform:scale(.985)}
+.card .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pilltext);background:var(--pillbg);padding:5px 10px;border-radius:999px}
+.card .pill.partial{background:var(--soft);color:var(--muted);margin-left:6px}
+.card h2{font-family:"Fraunces",Georgia,serif;font-size:24px;line-height:1.15;margin:12px 0 6px}
+.card .meta{color:var(--muted);font-size:14px}
+.card .go{margin-top:14px;display:flex;justify-content:space-between;align-items:center}
+.card .go span{font-weight:700;color:var(--terra)}
+.card .go .openpost{background:var(--terra);color:#fff;font-weight:700;padding:10px 16px;border-radius:999px;font-size:14px}
+.postbox{margin:14px 0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.openpost.big{width:100%;padding:15px;font-size:16px;font-weight:700;background:var(--terra);color:#fff;border-radius:14px}
+.copybtn{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-weight:700;font-size:15px;margin-top:10px}
+.rawurl{font-size:12px;color:var(--muted);word-break:break-all;margin-top:10px;text-align:center}
+.empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:16px}
+.detail{display:none}
+.detail .back{font-weight:700;font-size:15px;padding:6px 0;color:var(--terra)}
+.detail h2{font-family:"Fraunces",Georgia,serif;font-size:32px;line-height:1.1;margin:14px 0 6px}
+.detail .src{color:var(--muted);font-size:14px}
+.detail .src a{color:var(--terra);font-weight:700;text-decoration:none}
+.note{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:13.5px;color:var(--muted);margin:14px 0}
+h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
+.prog{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0 14px}
+.prog i{display:block;height:100%;background:var(--green);width:0;transition:width .2s}
+.prog-label{font-size:13px;color:var(--muted);margin-bottom:4px}
+.ing{list-style:none}
+.ing li{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:8px 0;cursor:pointer;font-size:17px;line-height:1.4}
+.ing li.done{opacity:.45}
+.ing li.done .txt{text-decoration:line-through}
+.box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--muted);margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
+.ing li.done .box{background:var(--green);border-color:var(--green)}
+.ing-plain{list-style:none}
+.ing-plain li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:8px 0;font-size:17px;line-height:1.4}
+.steps{list-style:none;counter-reset:s}
+.steps li{display:flex;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:10px 0;font-size:17px;line-height:1.55}
+.steps li::before{counter-increment:s;content:counter(s);flex:none;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.start{width:100%;padding:18px;border-radius:16px;background:var(--terra);color:#fff;font-size:19px;font-weight:700;margin:22px 0 8px}
+.start:active{background:var(--terra-d)}
+.cook{position:fixed;inset:0;background:var(--cream);z-index:50;display:none;flex-direction:column}
+.cook .chead{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}
+.cook .chead button{font-weight:700;color:var(--terra);font-size:15px}
+.cook .cbody{flex:1;overflow:auto;padding:28px 22px 140px;max-width:720px;width:100%;margin:0 auto}
+.cook .steplabel{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra)}
+.cook .steptext{font-family:"Fraunces",Georgia,serif;font-size:31px;line-height:1.25;margin:14px 0 6px}
+.cook .cfoot{position:fixed;bottom:0;left:0;right:0;background:var(--cream);border-top:1px solid var(--line);padding:14px 18px calc(14px + env(safe-area-inset-bottom));display:flex;gap:12px}
+.cook .cfoot button{flex:1;padding:17px;border-radius:14px;font-size:17px;font-weight:700}
+.cook .prev{background:var(--card);border:1.5px solid var(--line)}
+.cook .next{background:var(--terra);color:#fff}
+.cook .next:disabled{opacity:.4}
+.dots{display:flex;gap:6px;margin:18px 0}
+.dots i{width:9px;height:9px;border-radius:99px;background:var(--line)}
+.dots i.on{background:var(--terra)}
+.done-wrap{text-align:center;padding:50px 20px}
+.done-wrap .big{font-family:"Fraunces",Georgia,serif;font-size:34px}
+.done-wrap p{color:var(--muted);margin:12px 0 24px;font-size:16px}
+</style></head>
+<body>
+<div id="home">
+  <div class="top"><div class="toprow"><div><h1>Recipe Book</h1><p>From your saved posts — tap one to cook it.</p></div>
+    <button class="theme" id="themeBtn" onclick="toggleTheme()">Dark</button></div>
+    <div class="search"><input id="q" type="search" placeholder="Search recipes, ingredients, or cooks…" autocomplete="off"></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="wrap"><div class="count" id="count"></div><div id="list"></div>
+    <div id="moreSection"></div>
+  </div>
+</div>
+<div id="detail" class="detail wrap"></div>
+<div id="cook" class="cook"></div>
+<script id="data" type="application/json">[{"ingredients": ["Cheese spread: 12 oz whipped cream cheese", "Cheese spread: 1 tsp garlic powder", "Cheese spread: 1 tsp onion powder", "Cheese spread: 1 tsp smoked paprika", "Cheese spread: 1/2 tsp black pepper", "Cheese spread: 1 cup shredded cheese", "Burger: 3–4 oz 80/20 beef balls", "Burger: Lawry's seasoned salt", "Burger: thinly sliced onion and jalapeño", "Burger: sliced American cheese", "Burger: potato rolls, steamed", "Burger: cheese spread", "Burger: burger sauce"], "instructions": ["Cheese spread: mix everything together and refrigerate for 30 minutes or more until ready to serve."], "partial": true, "partial_note": "Cheese spread is complete. Burger assembly steps are not written out in the post — see the original post for the rest.", "source": "alfskitchen_", "title": "Smashburger with Cheese Spread", "url": "https://www.instagram.com/reel/DSTWB8lEoXN/", "category": "Mains"}, {"ingredients": ["1/2 cup plain Greek yogurt (low-fat)", "1/4 cup buttermilk", "1/4 cup sour cream (light)", "1/2 tsp garlic powder", "1/2 tsp onion powder", "1/2 tsp salt or MSG", "2 tsp fresh parsley", "1 tsp fresh dill", "1 tsp fresh chives", "1–2 tsp fresh lemon juice"], "instructions": ["In a medium bowl, whisk together the yogurt, buttermilk, and sour cream until smooth.", "Add garlic powder, onion powder, and salt.", "Stir in the parsley, dill, and chives.", "Add lemon juice, starting with 1 tsp, and adjust to taste.", "Chill in the refrigerator for at least 30 minutes.", "Serve as a dip or dressing."], "partial": false, "source": "meatlicious", "title": "Healthy Homemade Ranch", "url": "https://www.instagram.com/reel/DD4m6OCptmg/", "category": "Sauces & Dips"}, {"ingredients": ["Mayo: 2 egg yolks (room temp)", "Mayo: 2 tsp Dijon mustard", "Mayo: 2 tsp lemon juice or vinegar", "Mayo: 2 cups neutral oil", "Mayo: pinch of salt", "Ranch: 1 cup homemade mayo", "Ranch: 1 cup sour cream", "Ranch: 1 cup buttermilk (adjust to thin)", "Ranch: 2 tbsp each fresh dill, parsley, and chives, finely chopped", "Ranch: 1 tsp each garlic powder, onion powder", "Ranch: 1/2 tsp salt", "Ranch: 1/4 tsp MSG (optional)", "Ranch: 1/2 tsp pepper", "Ranch: 2–4 tsp lemon juice"], "instructions": ["Mayo: in a bowl or using an immersion blender, whisk the egg yolks, mustard, and lemon juice until smooth.", "Mayo: slowly drizzle in the oil while whisking constantly until thick and emulsified.", "Mayo: season with salt.", "Ranch: whisk mayo, sour cream, and buttermilk until smooth.", "Ranch: stir in seasonings and whisk to combine.", "Ranch: adjust consistency with buttermilk and flavor with lemon juice.", "Ranch: chill for 30 minutes before serving. Tastes even better the next day."], "partial": false, "source": "meatlicious", "title": "Homemade Ranch Dressing (with Homemade Mayo)", "url": "https://www.instagram.com/reel/DDChvsiRWPi/", "category": "Sauces & Dips"}, {"ingredients": ["3–4 lb chuck roast, cubed", "Salt + pepper for seasoning", "1 cup beef broth", "1/2 cup apple cider vinegar", "2 Roma tomatoes", "1/4 onion", "Juice of 1 lemon", "6 garlic cloves", "4 tsp ground cumin", "4 tsp chili powder", "2 tsp oregano", "1/2 tsp ground cloves", "4 bay leaves", "Sandwich toppings: Colby Jack and mozzarella cheese blend", "Sandwich toppings: cilantro with consommé"], "instructions": ["Preheat the grill: get a chimney of coals hot, dump into the tray, and let the cast iron sit over the coals for about 10 minutes.", "Cube the chuck and season with salt + pepper. Add about 2 tbsp olive oil to the pot and sear the cubes, flipping occasionally, until all sides get a good sear.", "Blend all the remaining ingredients (except bay leaves) in a blender or food processor, then dump into the pot. Add the bay leaves and close the lid.", "After about 4 hours, the chuck should have reached 200°F+ and be pull-apart tender. Separate the consommé from the beef.", "Remove the pot, set a new round of coals, and place a skillet on the tray. Butter the skillet and toast the bread, then build the sandwich. Cut and dip in consommé and cilantro."], "partial": false, "source": "thebkydpalate", "title": "Beef Barbacoa Grilled Cheese", "url": "https://www.instagram.com/reel/DBtd9TzxiA7/", "category": "Mains"}, {"ingredients": ["2–3 lb chuck roast", "Salt, pepper, and garlic powder", "2 tbsp butter", "1/2 tsp each salt and pepper", "1 tsp each cumin and dried cilantro", "2 tsp chili powder", "1/4 tsp cayenne", "1 onion, chopped", "2 cups beef broth", "1 tbsp minced garlic", "4 oz green chiles", "7 oz chipotle peppers in adobo sauce", "Oil for frying", "White corn tortillas", "Chihuahua cheese"], "instructions": ["Season the chuck roast with salt, pepper, and garlic powder. Heat a skillet over medium-high heat with a couple of tbsp of butter and sear the roast on all sides.", "Put the roast in a slow cooker. Season with salt, pepper, cumin, dried cilantro, chili powder, and cayenne. Add the onion, beef broth, minced garlic, green chiles, and chipotle peppers in adobo. Stir together.", "Cook on low for 7 or 8 hours. Remove the meat, shred with two forks, and discard extra fat.", "Carefully add the juices and chipotle peppers from the slow cooker to a blender. Blend the sauce and set aside.", "Heat a skillet over medium heat with some oil. Lay out tortillas, top with shredded cheese and a spoonful of meat. Fold and cook on both sides until golden brown and crispy.", "Lay tacos on paper towels to absorb extra grease. Top with your favorite toppings and dip in the sauce."], "partial": false, "source": "cookinginthemidwest", "title": "Crockpot Chipotle Shredded Beef Tacos", "url": "https://www.instagram.com/reel/DA3TqZnx_tO/", "category": "Mains"}, {"ingredients": ["3 cups flour", "1 tsp salt", "1 tsp baking powder", "1/3 cup oil (avocado oil or bacon grease)", "1 cup hot water"], "instructions": ["In a large bowl, combine all the dry ingredients, then add in the wet. Combine until well mixed and it turns into a dough.", "Cover the dough with a warm towel and let it sit for 30 minutes.", "Shape the dough into small balls, put back into the bowl, and re-cover with a new warm towel for 15 minutes. Flour your surfaces.", "Set a pan over medium-ish heat. Roll out the balls on a floured surface and cook each one 30 seconds to a minute on each side, keeping an eye on them.", "Store in a ziplock bag in the fridge for up to a week."], "partial": false, "source": "sweetcooking_with_sara", "title": "Flour Tortillas", "url": "https://www.instagram.com/reel/C8azPaLOeIY/", "category": "Baking"}, {"ingredients": ["14 hot dogs (beef)", "AP seasoning + Gold sauce", "Smoked paprika", "4 tbsp butter", "1/4 cup dark brown sugar", "Mustard or mayo (to bind seasoning)", "Low-salt option: onion powder, garlic powder, pepper, and smoked paprika instead of the AP seasoning"], "instructions": ["Set oven to 300°F.", "Score hot dogs in a cross-stitch pattern to get the pinecone look.", "Lather on mustard/mayo and season with AP seasoning first, then smoked paprika.", "Place dogs on a warming rack and cook 30–45 minutes, or until the crust sets and the hot dogs open up.", "On the stovetop, combine butter, brown sugar, and Gold sauce and mix.", "Cut dogs into thirds, place in a cast iron skillet scored-side up, and evenly lather on the BBQ mixture.", "Increase oven temp to 350°F and let the pinecones sit another 30 minutes, or until you're satisfied with the char.", "Remove and let sit about 10 minutes. Enjoy."], "partial": false, "source": "thebkydpalate", "title": "Hot Dog Pinecones", "url": "https://www.instagram.com/reel/C610ZX6PloC/", "category": "Mains"}, {"ingredients": ["Beef: olive oil", "Beef: 500g / 1 lb lean minced/ground beef", "Beef: 1 heaped tbsp tomato puree (tomato paste)", "Beef: 2–3 tbsp water", "Seasoning: 2 tsp each paprika, cumin", "Seasoning: 1 tsp each onion powder, garlic powder, oregano", "Seasoning: 1/2–1 tsp salt", "Seasoning: 1/2 tsp each sugar, cayenne pepper", "Seasoning: 1/4 tsp black pepper", "Tacos: 2 sheets puff pastry", "Tacos: 200g / 7 oz cheese, grated", "Tacos: 1 egg, beaten", "Tacos: 1 pot (150g / 5 oz) sour cream", "Tacos: 2–3 tbsp sriracha", "Tacos: favorite taco toppings (lettuce, tomato, avocado, etc.)"], "instructions": ["Preheat oven to 200°C / 400°F.", "Add oil to a large pan over medium-high heat and add the beef. Break it up, and when it begins to brown, stir in the seasoning and continue frying until cooked. Add tomato puree and water and fry another minute until the water soaks up and the beef is thick and juicy. If you have time, leave to cool until it stops steaming.", "Line 2 baking trays with baking paper. Slice one pastry sheet into 8 even rectangles, then slice 2 more out of the second sheet. Sprinkle the cheese in 10 mounds in the same shape as the pastry (just a bit smaller), then top with beef. Place the pastry over the top, press around the outside to secure the filling, and brush with egg wash.", "Bake 15 minutes, or until deep golden and crispy. Meanwhile, make the sauce by combining sour cream + sriracha.", "Flip the pastries over (slide a spatula underneath; if the paper sticks, cut around each pastry, flip individually, and remove the paper). Add toppings and enjoy."], "partial": false, "servings": "Makes 10", "source": "dontgobaconmyheart_", "title": "Upside Down Puff Pastry Tacos", "url": "https://www.instagram.com/reel/C6HbMYmIdz_/", "category": "Mains"}, {"ingredients": ["1 lb hot breakfast sausage", "16 oz pepper jack cheese", "32 oz Velveeta", "8 oz cream cheese", "2 cans Ro-Tel", "1 cup chopped cilantro", "2 tbsp taco seasoning (chili lime)", "8 oz beer (Summer Ale)"], "instructions": ["Brown the breakfast sausage in a pan, then set aside to cool.", "Chop the pepper jack cheese and Velveeta into cubes about 1 inch wide.", "Add the cubes of cheese to the bottom of an oven-safe dish and place the block of cream cheese on top.", "Pour in both cans of Ro-Tel, then add the crumbled breakfast sausage.", "Sprinkle the chopped cilantro over the top, season with taco seasoning, then pour in 8 oz of beer.", "Smoke at 300°F for about an hour, then stir until well combined and smoke for 30 more minutes.", "Serve immediately alongside tortilla chips or crackers."], "partial": false, "source": "marriedtobbq", "title": "Smoked Texas Queso", "url": "https://www.instagram.com/reel/C5gwrYovG0F/", "category": "Sauces & Dips"}, {"ingredients": ["1 can diced fire-roasted tomatoes", "2 chipotles in adobo sauce plus 1 tsp sauce", "1 clove garlic", "1/2 white onion, cut into chunks", "1 jalapeño, cut into chunks (leave seeds in, or remove them)", "2 limes", "Small handful of cilantro", "1 tsp guajillo chili powder (or any chili powder)", "1 tsp kosher salt"], "instructions": ["Combine chilis, garlic, onion, and jalapeño in a food processor and pulse until roughly chopped.", "Add tomatoes, lime juice, cilantro, chili powder, and salt. Continue to pulse until uniform but still slightly chunky.", "Taste and adjust seasoning as necessary.", "Serve with tortilla chips, on eggs, or on tacos."], "partial": false, "source": "danseidman", "title": "5-Minute Salsa", "url": "https://www.instagram.com/reel/C4I_sQ0rk8C/", "category": "Sauces & Dips"}, {"ingredients": ["Rub amounts are per 5 lbs of meat", "1/4 cup celery salt", "2 tbsp coarse salt", "1/4 cup brown sugar", "2 tbsp onion powder", "2 tbsp garlic powder", "1/4 cup maple syrup", "A few tbsp red pepper flakes (optional)"], "instructions": ["Rub and coat the entire slab of meat, then place in sealed, airtight bags for 7 days, flipping them over every day.", "After 7 days, pull out of the bags and rinse under water well. Pat dry and add any additional seasonings if desired.", "Place in the smoker at 160–170°F for around 6 hours, or until the meat reaches 155°F internal temp. (Or bake in the oven at 200°F until it reaches 155°F internal.)", "Take off the smoker, place back in the fridge uncovered until fully cooled. Then slice and package."], "partial": false, "source": "theflakehomestead", "title": "Homemade Bacon (Rub & Cure)", "url": "https://www.instagram.com/reel/C4HOwmLvTUZ/", "category": "Pantry"}, {"ingredients": ["1 pack King's Hawaiian sweet rolls", "American cheese slices", "1/2 lb browned breakfast sausage", "6 eggs, scrambled", "9 pieces cooked bacon", "Shredded Colby Jack cheese", "1/2 stick melted butter", "1 tbsp syrup", "Everything but the Bagel seasoning"], "instructions": ["Cook the bacon and sausage, and make scrambled eggs.", "Slice Hawaiian rolls in half and add American cheese to the bottom of the rolls.", "Add browned sausage and scrambled eggs, and top with shredded Colby Jack cheese.", "Top with crispy bacon and put the tops of the Hawaiian rolls on.", "In a bowl, mix melted butter and syrup. Brush this on top of the rolls.", "Sprinkle Everything but the Bagel seasoning on top.", "Bake at 350°F for about 15 minutes.", "Serve with extra syrup for dipping."], "partial": false, "source": "cookinginthemidwest", "title": "Breakfast Sliders", "url": "https://www.instagram.com/reel/CrVxkAcAdhD/", "category": "Breakfast"}, {"ingredients": ["A couple of ice cubes", "30 ml caramel sauce or syrup", "100 ml milk of choice", "Double shot of espresso", "Topping: whipped cream and extra caramel"], "instructions": ["Fill your blender with the ice cubes, caramel sauce, milk, and espresso.", "Blend, then pour into your final cup.", "Top with whipped cream and extra caramel if you like."], "partial": false, "source": "yourcoffeedude", "title": "Caramel Frappuccino", "url": "https://www.instagram.com/reel/ClQ8cCeq4TG/", "category": "Drinks"}]</script>
+<script id="moredata" type="application/json">[{"title": "Scalloped Potatoes", "source": "jose.elcook", "url": "https://www.instagram.com/reel/DZ6ZZqiu-2M/", "category": "Mains", "note": "Ingredients written out, but no steps — follow the video for the method.", "ingredients": ["5 Yukon potatoes", "4 oz butter", "1/2 onion, diced", "1 Tbsp kosher salt", "5 cloves garlic, minced", "1/4 cup flour", "12 oz heavy cream", "12 oz chicken stock", "1 tsp chopped rosemary", "1/2 tsp nutmeg", "1/2 tsp cayenne pepper", "1/2 cup shredded cheddar", "Gruyère cheese, for broiling", "Chives, to garnish"]}, {"title": "Loaded Baked Potato Soup", "source": "jose.elcook", "url": "https://www.instagram.com/reel/DTfm2cDEX-G/", "category": "Mains", "note": "Ingredients written out (makes about 8 cups), but no steps — follow the video for the method.", "ingredients": ["10 slices thick-cut bacon, chopped", "1 yellow onion, diced", "4 celery stalks, diced", "2 cloves garlic, minced", "2 tsp salt", "1/2 tsp black pepper", "4 Tbsp unsalted butter", "4 Tbsp flour", "2.5 cups whole milk, warmed", "1/2 cup heavy cream, warmed", "3 cups chicken stock", "3 russet potatoes, peeled and cut into 1/2-inch cubes", "1/2 cup chopped green onion", "1 cup grated medium cheddar cheese", "Chives, to garnish", "More cheese, to garnish", "Black pepper, to garnish"]}, {"title": "Carne Asada Marinade", "source": "big.eats.world", "url": "https://www.instagram.com/reel/DCj7vu0yUPX/", "category": "Mains", "note": "Marinade ingredients only — no steps written out.", "ingredients": ["3 lbs flank steak or skirt", "1/2 cup olive oil", "1 tsp black pepper", "1 tsp oregano", "1 1/2 Tbsp salt", "1 tsp cumin", "1/2 Tbsp chili powder", "1/2 Tbsp garlic powder", "1/2 Tbsp onion powder", "Juice of 2 lemons", "Juice of 2 oranges", "Small bunch of cilantro", "Half a white onion"]}, {"title": "Chipotle Honey Vinaigrette", "source": "iankyo", "url": "https://www.instagram.com/reel/C5dxUcEr7wG/", "category": "Sauces & Dips", "note": "Ingredients only — no steps written out.", "ingredients": ["Red wine vinegar (1 cup)", "Honey (1/4 cup)", "Neutral oil (3/4 cup)", "Chipotle peppers (3-4)", "Garlic (3 cloves)", "Dried oregano (1 tsp)", "Salt (to taste)", "Pepper (to taste)"]}, {"title": "Chicken Katsu", "source": "jose.elcook", "url": "https://www.instagram.com/reel/C6oyjq4AXte/", "category": "Mains", "note": "Only the sauce is written out — the full katsu recipe is not in the post.", "ingredients": ["3 Tbsp ketchup", "1 Tbsp oyster sauce", "2 tsp Worcestershire", "1 1/2 Tbsp sugar"]}, {"title": "3 Chicken Marinades", "source": "2tfitness", "url": "https://www.instagram.com/reel/C9NUbLLvhH9/", "category": "Mains", "note": "Marinade components named, no amounts or steps. Caption says: oven at 400°F for 30–40 mins.", "ingredients": ["Garlic Parm Marinade: olive oil, white wine vinegar, garlic powder, dried oregano, onion powder, crushed red pepper, truffle salt (or normal salt), pepper, honey, grated Parmesan", "Sweet Marinade: olive oil, balsamic, soy sauce, Worcestershire, salt, pepper, garlic, rosemary, light brown sugar, lemon, Dijon mustard", "Tomato Marinade: olive oil, tomato paste, lemon zest, lemon juice, garlic, salt, pepper, smoked paprika, oregano, thyme, cayenne"]}, {"title": "Modular Cooking", "source": "forkthepeople", "url": "https://www.instagram.com/reel/DDiPi5so8bI/", "category": "Techniques", "note": "Technique explainer — how simple ingredient changes create whole new dishes. No recipe written out.", "ingredients": []}, {"title": "How to Tell If Your Cookies Will Spread", "source": "halfbatchbaking", "url": "https://www.instagram.com/reel/C2dpWK-xpEy/", "category": "Techniques", "note": "Baking-science explainer — how fat/sugar/flour ratios and mixing method affect cookie spread. No recipe written out.", "ingredients": []}]</script>
+<script>
+const R = JSON.parse(document.getElementById('data').textContent);
+const MORE = JSON.parse(document.getElementById('moredata').textContent);
+const CATS = ['All','Mains','Sauces & Dips','Baking','Breakfast','Drinks','Pantry','Techniques'];
+let cat = 'All', sel = null, checked = new Set(), step = 0;
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function effTheme(){ return document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
+function updateThemeBtn(){ $('#themeBtn').textContent = effTheme() === 'dark' ? 'Light' : 'Dark'; }
+function toggleTheme(){ const t = effTheme() === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); try{ localStorage.setItem('rb-theme', t); }catch(e){} updateThemeBtn(); }
+try{ const saved = localStorage.getItem('rb-theme'); if (saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
+updateThemeBtn();
+function q(){ return $('#q').value.trim().toLowerCase(); }
+function matchItem(r){ return (cat === 'All' || r.category === cat) && (!q() || (r.title + ' ' + (r.ingredients||[]).join(' ') + ' ' + r.source + ' ' + (r.note||'')).toLowerCase().includes(q())); }
+function renderChips(){
+  $('#chips').innerHTML = CATS.map(c => `<button class="chip ${c===cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+}
+function setCat(c){ cat = c; renderChips(); renderList(); }
+function cardHtml(r, kind, idx){
+  const sub = kind === 'recipe'
+    ? `<div class="meta">@${esc(r.source)} &middot; ${r.ingredients.length} ingredients &middot; ${r.instructions.length} steps</div><div class="go"><span>Start cooking</span><span class="arrow">&rarr;</span></div>`
+    : `<div class="meta">@${esc(r.source)} &middot; ${esc(r.note)}</div><div class="go"><span>See details</span><button class="openpost" onclick="event.stopPropagation(); openPost('${r.url}')">Open post ↗</button></div>`;
+  const pill2 = kind === 'recipe' ? (r.partial ? '<span class="pill partial">Partial recipe</span>' : '') : '<span class="pill partial">No full recipe</span>';
+  return `<div class="card" onclick="openItem(${idx}, '${kind}')"><span class="pill">${esc(r.category)}</span>${pill2}<h2>${esc(r.title)}</h2>${sub}</div>`;
+}
+function renderList(){
+  const list = R.filter(matchItem), more = MORE.filter(matchItem);
+  $('#count').textContent = list.length + (list.length === 1 ? ' recipe' : ' recipes') + (more.length ? ' + ' + more.length + ' more from your saves' : '');
+  $('#list').innerHTML = list.length ? list.map(r => cardHtml(r, 'recipe', R.indexOf(r))).join('') : '<div class="empty">Nothing matches. Try another search.</div>';
+  $('#moreSection').innerHTML = more.length ? `<div class="section-title">More from your saves</div><div class="section-sub">No full recipe written out — but the post may still be worth a look.</div>` + more.map(r => cardHtml(r, 'more', MORE.indexOf(r))).join('') : '';
+}
+function openItem(i, kind){
+  sel = (kind === 'recipe' ? R[i] : MORE[i]); sel._kind = kind; checked = new Set(); step = 0;
+  $('#home').style.display = 'none';
+  const d = $('#detail'); d.style.display = 'block';
+  let body = `<button class="back" onclick="goHome()">&larr; All recipes</button>
+    <h2>${esc(sel.title)}</h2>
+    <div class="src">From @${esc(sel.source)}</div>
+    <div class="postbox">
+      <button class="openpost big" onclick="openPost('${sel.url}')">Open original post ↗</button>
+      <button class="copybtn" onclick="copyLink('${sel.url}', this)">Copy link</button>
+      <div class="rawurl">${esc(sel.url)}</div>
+    </div>
+    <div class="note">Photos live on the original post — tap through to see them.</div>`;
+  if (kind === 'recipe'){
+    body += `${sel.partial ? '<div class="note">Partial recipe — the post doesn&rsquo;t spell out every step, so check the original post for the rest.</div>' : ''}
+    <h3>Ingredients</h3>
+    <div class="prog-label" id="progLabel"></div><div class="prog"><i id="progBar"></i></div>
+    <ul class="ing" id="ingList"></ul>
+    <button class="start" onclick="startCook()">Start cooking &rarr;</button>
+    <h3>Steps</h3>
+    <ol class="steps">${sel.instructions.map(s => `<li><span>${esc(s)}</span></li>`).join('')}</ol>`;
+  } else {
+    body += `<div class="note">${esc(sel.note)}</div>`;
+    if (sel.ingredients.length) body += `<h3>Ingredients (as written in the post)</h3><ul class="ing-plain">${sel.ingredients.map(g => `<li>${esc(g)}</li>`).join('')}</ul>`;
+  }
+  d.innerHTML = body;
+  if (kind === 'recipe') renderIng();
+  window.scrollTo(0, 0);
+}
+function renderIng(){
+  $('#ingList').innerHTML = sel.ingredients.map((g,i) => `
+    <li class="${checked.has(i)?'done':''}" onclick="toggleIng(${i})"><span class="box">${checked.has(i)?'&check;':''}</span><span class="txt">${esc(g)}</span></li>`).join('');
+  const n = checked.size, t = sel.ingredients.length;
+  $('#progLabel').textContent = n === 0 ? 'Tap each ingredient as you gather it.' : n + ' of ' + t + ' gathered';
+  $('#progBar').style.width = (t ? (n / t) * 100 : 0) + '%';
+}
+function toggleIng(i){ checked.has(i) ? checked.delete(i) : checked.add(i); renderIng(); }
+function goHome(){
+  $('#detail').style.display = 'none'; $('#home').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+function startCook(){
+  step = 0; renderCook(); $('#cook').style.display = 'flex';
+}
+function renderCook(){
+  const total = sel.instructions.length;
+  const done = step >= total;
+  $('#cook').innerHTML = `
+    <div class="chead"><span>${esc(sel.title)}</span><button onclick="exitCook()">Exit</button></div>
+    ${done ? `<div class="cbody"><div class="done-wrap"><div class="big">You did it.</div><p>${esc(sel.title)} is ready. Enjoy!</p><button class="start" onclick="exitCook()">Back to recipe</button></div></div>`
+    : `<div class="cbody">
+        <div class="steplabel">Step ${step + 1} of ${total}</div>
+        <div class="steptext">${esc(sel.instructions[step])}</div>
+        <div class="dots">${sel.instructions.map((_,i) => `<i class="${i===step?'on':''}"></i>`).join('')}</div>
+      </div>
+      <div class="cfoot">
+        <button class="prev" onclick="cookPrev()" ${step===0?'disabled':''}>&larr; Back</button>
+        <button class="next" onclick="cookNext()">${step === total - 1 ? 'Finish &check;' : 'Next step &rarr;'}</button>
+      </div>`}`;
+}
+function cookNext(){ step++; renderCook(); }
+function cookPrev(){ if (step > 0) { step--; renderCook(); } }
+function exitCook(){ $('#cook').style.display = 'none'; }
+function openPost(url){ window.location.href = url; }
+function copyLink(url, btn){
+  const done = () => { if (btn){ const t = btn.textContent; btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = t, 1500); } };
+  if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done)); }
+  else fallbackCopy(url, done);
+}
+function fallbackCopy(url, done){
+  const ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){} document.body.removeChild(ta);
+}
+$('#q').addEventListener('input', renderList);
+renderChips(); renderList();
+</script></body></html>
