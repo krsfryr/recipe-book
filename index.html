@@ -82,7 +82,7 @@ h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
 .done-wrap{text-align:center;padding:50px 20px}
 .done-wrap .big{font-family:"Fraunces",Georgia,serif;font-size:34px}
 .done-wrap p{color:var(--muted);margin:12px 0 24px;font-size:16px}
-.originrow{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}</style></head>
+.originrow{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}</style></head>
 <body>
 <div id="home">
   <div class="top"><div class="toprow"><div><h1>Recipe Book</h1><p>Tap one to cook it.</p></div>
@@ -278,6 +278,22 @@ function stepIngs(r, stepText){
   });
   return hits.filter(h => !hits.some(o => o !== h && o.words.length > h.words.length && h.words.every(w => o.words.includes(w)) && o.words.filter(w => !h.words.includes(w)).every(hitWord))).map(h => h.i);
 }
+function setupSwipe(){
+  const el = $('#cook');
+  let sx = 0, sy = 0, tracking = false;
+  el.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true;
+  }, {passive: true});
+  el.addEventListener('touchend', e => {
+    if (!tracking) return; tracking = false;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && sel && sel.instructions) {
+      if (dx < 0) cookNext(); else cookPrev();
+    }
+  }, {passive: true});
+}
 function renderCook(){
   const total = sel.instructions.length;
   const done = step >= total;
@@ -291,6 +307,7 @@ function renderCook(){
         <div class="steptext">${esc(sel.instructions[step])}</div>
         ${ings.length ? `<div class="cookneed">Add these:</div><div class="cookings">${ings.map(i => `<label class="cooking ${checked.has(i)?'done':''}"><input type="checkbox" ${checked.has(i)?'checked':''} onchange="toggleIng(${i})"><span>${esc(sel.ingredients[i])}</span></label>`).join('')}</div>${allIn ? `<div class="cookall">All in — keep going.</div>` : ''}` : `<div class="cookneed none">No ingredients in this step.</div>`}
         <div class="dots">${sel.instructions.map((_,i) => `<i class="${i===step?'on':''}"></i>`).join('')}</div>
+        <div class="swipehint">Swipe &larr; &rarr; to move between steps</div>
       </div>
       <div class="cfoot">
         <button class="prev" onclick="cookPrev()" ${step===0?'disabled':''}>&larr; Back</button>
@@ -323,7 +340,7 @@ async function loadData(){
   renderList(); syncFromHash();
 }
 $('#q').addEventListener('input', renderList);
-renderChips(); renderOrigin();
+renderChips(); renderOrigin(); setupSwipe();
 $('#list').innerHTML = '<div class="empty">Loading recipes…</div>';
 loadData();
 window.addEventListener('hashchange', syncFromHash);
