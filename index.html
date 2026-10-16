@@ -82,7 +82,7 @@ h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
 .done-wrap{text-align:center;padding:50px 20px}
 .done-wrap .big{font-family:"Fraunces",Georgia,serif;font-size:34px}
 .done-wrap p{color:var(--muted);margin:12px 0 24px;font-size:16px}
-.originrow{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{margin-top:18px;font-size:14px;line-height:1.45;color:var(--muted)}</style></head>
+.originrow{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{font-size:14px;line-height:1.45;color:var(--muted)}.nextlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin:18px 0 4px}@keyframes stepInNext{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}@keyframes stepInPrev{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}.cbody.anim-next{animation:stepInNext .3s ease}.cbody.anim-prev{animation:stepInPrev .3s ease}.cooking{transition:opacity .2s ease,background .2s ease}.cookall{animation:fadeIn .3s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.dots i{transition:background .25s ease,transform .25s ease}.dots i.on{transform:scale(1.25)}.cook .cfoot button{transition:transform .1s ease}.cook .cfoot button:active{transform:scale(.98)}@media (prefers-reduced-motion:reduce){.cook *{animation:none !important;transition:none !important}}</style></head>
 <body>
 <div id="home">
   <div class="top"><div class="toprow"><div><h1>Recipe Book</h1><p>Tap one to cook it.</p></div>
@@ -297,16 +297,18 @@ function setupSwipe(){
 function renderCook(){
   const total = sel.instructions.length;
   const done = step >= total;
+  const animCls = stepDir === 1 ? ' anim-next' : stepDir === -1 ? ' anim-prev' : '';
+  stepDir = 0;
   const ings = done ? [] : stepIngs(sel, sel.instructions[step]);
   const allIn = ings.length > 0 && ings.every(i => checked.has(i));
   $('#cook').innerHTML = `
     <div class="chead"><span>${esc(sel.title)}</span><button onclick="exitCook()">Exit</button></div>
     ${done ? `<div class="cbody"><div class="done-wrap"><div class="big">You did it.</div><p>${esc(sel.title)} is ready. Enjoy!</p><button class="start" onclick="exitCook()">Back to recipe</button></div></div>`
-    : `<div class="cbody">
+    : `<div class="cbody${animCls}">
         <div class="steplabel">Step ${step + 1} of ${total}</div>
         <div class="steptext">${esc(sel.instructions[step])}</div>
         ${ings.length ? `<div class="cookneed">Add these:</div><div class="cookings">${ings.map(i => `<label class="cooking ${checked.has(i)?'done':''}"><input type="checkbox" ${checked.has(i)?'checked':''} onchange="toggleIng(${i})"><span>${esc(sel.ingredients[i])}</span></label>`).join('')}</div>${allIn ? `<div class="cookall">All in — keep going.</div>` : ''}` : `<div class="cookneed none">No ingredients in this step.</div>`}
-        ${step < total - 1 ? `<div class="upnext">${esc(sel.instructions[step + 1].length > 160 ? sel.instructions[step + 1].slice(0, 160).trim() + '…' : sel.instructions[step + 1])}</div>` : `<div class="upnext">You&rsquo;re done &mdash; enjoy!</div>`}
+        <div class="nextlabel">Next step</div>${step < total - 1 ? `<div class="upnext">${esc(sel.instructions[step + 1].length > 160 ? sel.instructions[step + 1].slice(0, 160).trim() + '…' : sel.instructions[step + 1])}</div>` : `<div class="upnext">You&rsquo;re done &mdash; enjoy!</div>`}
         <div class="dots">${sel.instructions.map((_,i) => `<i class="${i===step?'on':''}"></i>`).join('')}</div>
         <div class="swipehint">Swipe &larr; &rarr; to move between steps</div>
       </div>
@@ -316,8 +318,9 @@ function renderCook(){
         <button class="next" onclick="cookNext()">${step === total - 1 ? 'Finish &check;' : 'Next step &rarr;'}</button>
       </div>`}`;
 }
-function cookNext(){ step++; renderCook(); setHash(); }
-function cookPrev(){ if (step > 0) { step--; renderCook(); setHash(); } }
+let stepDir = 0;
+function cookNext(){ stepDir = 1; step++; renderCook(); setHash(); }
+function cookPrev(){ if (step > 0) { stepDir = -1; step--; renderCook(); setHash(); } }
 function exitCook(){ $('#cook').style.display = 'none'; setHash(); }
 function openPost(url){ window.location.href = url; }
 function copyLink(url, btn){
