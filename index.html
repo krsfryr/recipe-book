@@ -102,6 +102,31 @@ const CATS = ['All','Mains','Crockpot','Sauces & Dips','Baking','Breakfast','Dri
 let R = [];
 let cat = 'All', origin = 'All', sel = null, checked = new Set(), step = 0;
 let homeScroll = 0;
+function saveScroll(){
+  try{
+    const s = JSON.parse(sessionStorage.getItem('rb-scroll') || '{}');
+    if (sel){ s.recipe = s.recipe || {}; s.recipe[sel.title] = window.scrollY; }
+    else { s.home = {y: window.scrollY, cat, origin, q: q()}; }
+    sessionStorage.setItem('rb-scroll', JSON.stringify(s));
+  }catch(e){}
+}
+let scrollSaveTimer = null;
+window.addEventListener('scroll', () => {
+  clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = setTimeout(saveScroll, 200);
+}, {passive: true});
+function restoreScroll(){
+  try{
+    const s = JSON.parse(sessionStorage.getItem('rb-scroll') || '{}');
+    if (sel && s.recipe && s.recipe[sel.title] != null){
+      requestAnimationFrame(() => window.scrollTo(0, s.recipe[sel.title])); return true;
+    }
+    if (!sel && s.home && s.home.cat === cat && s.home.origin === origin && s.home.q === q()){
+      requestAnimationFrame(() => window.scrollTo(0, s.home.y || 0)); return true;
+    }
+  }catch(e){}
+  return false;
+}
 const ORIGINS = [['All','All recipes'],['social','Social media'],['parents','From my parents'],['mine','My notes']];
 function renderOrigin(){
   $('#originRow').innerHTML = ORIGINS.map(o => `<button class="chip ${o[0]===origin?'on':''}" onclick="setOrigin('${o[0]}')">${o[1]}</button>`).join('');
@@ -225,7 +250,7 @@ function openItem(i, kind, fromHash){
   }
   d.innerHTML = body;
   if (kind === 'recipe' && sel.ingredients && sel.ingredients.length) renderIng();
-  window.scrollTo(0, 0);
+  if (!fromHash || !restoreScroll()) window.scrollTo(0, 0);
   if (!fromHash) setHash();
 }
 function renderIng(){
@@ -388,7 +413,7 @@ async function loadData(){
     $('#list').innerHTML = '<div class="empty">Couldn\'t load recipes. Check your connection and refresh.</div>';
     return;
   }
-  renderList(); syncFromHash();
+  renderList(); syncFromHash(); if (!sel) restoreScroll();
 }
 $('#q').addEventListener('input', renderList);
 renderChips(); renderOrigin(); setupSwipe();
