@@ -101,6 +101,7 @@ const MORE = JSON.parse(document.getElementById('moredata').textContent);
 const CATS = ['All','Mains','Crockpot','Sauces & Dips','Baking','Breakfast','Drinks','Pantry','Techniques'];
 let R = [];
 let cat = 'All', origin = 'All', sel = null, checked = new Set(), step = 0;
+let homeScroll = 0;
 const ORIGINS = [['All','All recipes'],['social','Social media'],['parents','From my parents'],['mine','My notes']];
 function renderOrigin(){
   $('#originRow').innerHTML = ORIGINS.map(o => `<button class="chip ${o[0]===origin?'on':''}" onclick="setOrigin('${o[0]}')">${o[1]}</button>`).join('');
@@ -189,6 +190,7 @@ function renderList(){
   $('#moreSection').innerHTML = more.length ? `<div class="section-title">More from your saves</div><div class="section-sub">No full recipe written out — but the post may still be worth a look.</div>` + more.map(r => cardHtml(r, 'more', MORE.indexOf(r))).join('') : '';
 }
 function openItem(i, kind, fromHash){
+  if ($('#home').style.display !== 'none') homeScroll = window.scrollY;
   sel = (kind === 'recipe' ? R[i] : MORE[i]); sel._kind = kind; checked = new Set(); step = 0;
   $('#cook').style.display = 'none';
   $('#home').style.display = 'none';
@@ -237,7 +239,7 @@ function toggleIng(i){ checked.has(i) ? checked.delete(i) : checked.add(i); rend
 function goHome(fromHash){
   $('#detail').style.display = 'none'; $('#cook').style.display = 'none'; $('#home').style.display = 'block';
   sel = null;
-  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, homeScroll || 0));
   if (!fromHash) history.replaceState(null, '', location.pathname);
 }
 function startCook(){
