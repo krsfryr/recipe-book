@@ -127,7 +127,7 @@ function restoreScroll(){
   }catch(e){}
   return false;
 }
-const ORIGINS = [['All','All recipes'],['social','Social media'],['parents','From my parents'],['mine','My notes']];
+const ORIGINS = [['All','All recipes'],['social','Social media'],['parents','From my parents'],['friends','From friends & family'],['mine','My notes']];
 function renderOrigin(){
   $('#originRow').innerHTML = ORIGINS.map(o => `<button class="chip ${o[0]===origin?'on':''}" onclick="setOrigin('${o[0]}')">${o[1]}</button>`).join('');
 }
