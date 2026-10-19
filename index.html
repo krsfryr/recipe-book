@@ -82,14 +82,14 @@ h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
 .done-wrap{text-align:center;padding:50px 20px}
 .done-wrap .big{font-family:"Fraunces",Georgia,serif;font-size:34px}
 .done-wrap p{color:var(--muted);margin:12px 0 24px;font-size:16px}
-.originrow{display:flex;gap:8px;flex-wrap:wrap;padding:2px 16px 12px}.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.stepbody{flex:1;min-width:0}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{font-size:14px;line-height:1.45;color:var(--muted)}.nextlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin:18px 0 4px}@keyframes stepInNext{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}@keyframes stepInPrev{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}.cbody.anim-next{animation:stepInNext .45s ease}.cbody.anim-prev{animation:stepInPrev .45s ease}.cooking{transition:opacity .3s ease,background .3s ease}.cookall{animation:fadeIn .45s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.dots i{transition:background .35s ease,transform .35s ease}.dots i.on{transform:scale(1.5)}.cook .cfoot button{transition:transform .15s ease}.cook .cfoot button:active{transform:scale(.95)}@media (prefers-reduced-motion:reduce){.cook *{animation:none !important;transition:none !important}}</style></head>
+.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.stepbody{flex:1;min-width:0}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{font-size:14px;line-height:1.45;color:var(--muted)}.nextlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin:18px 0 4px}@keyframes stepInNext{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}@keyframes stepInPrev{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}.cbody.anim-next{animation:stepInNext .45s ease}.cbody.anim-prev{animation:stepInPrev .45s ease}.cooking{transition:opacity .3s ease,background .3s ease}.cookall{animation:fadeIn .45s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.dots i{transition:background .35s ease,transform .35s ease}.dots i.on{transform:scale(1.5)}.cook .cfoot button{transition:transform .15s ease}.cook .cfoot button:active{transform:scale(.95)}@media (prefers-reduced-motion:reduce){.cook *{animation:none !important;transition:none !important}}</style></head>
 <body>
 <div id="home">
   <div class="top"><div class="toprow"><div><h1>Recipe Book</h1><p>Tap one to cook it.</p></div>
     <button class="theme" id="themeBtn" onclick="toggleTheme()">Dark</button></div>
     <div class="search"><input id="q" type="search" placeholder="Search recipes, ingredients, or cooks…" autocomplete="off"></div>
   </div>
-  <div class="chips" id="chips"></div><div class="originrow" id="originRow"></div>
+  <div class="chips" id="chips"></div>
   <div class="wrap"><div class="count" id="count"></div><div id="list"></div>
     <div id="moreSection"></div>
   </div>
@@ -100,13 +100,13 @@ h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
 const MORE = JSON.parse(document.getElementById('moredata').textContent);
 const CATS = ['All','Mains','Crockpot','Sauces & Dips','Baking','Breakfast','Drinks','Pantry','Techniques'];
 let R = [];
-let cat = 'All', origin = 'All', sel = null, checked = new Set(), step = 0;
+let cat = 'All', sel = null, checked = new Set(), step = 0;
 let homeScroll = 0;
 function saveScroll(){
   try{
     const s = JSON.parse(sessionStorage.getItem('rb-scroll') || '{}');
     if (sel){ s.recipe = s.recipe || {}; s.recipe[sel.title] = window.scrollY; }
-    else { s.home = {y: window.scrollY, cat, origin, q: q()}; }
+    else { s.home = {y: window.scrollY, cat, q: q()}; }
     sessionStorage.setItem('rb-scroll', JSON.stringify(s));
   }catch(e){}
 }
@@ -121,17 +121,12 @@ function restoreScroll(){
     if (sel && s.recipe && s.recipe[sel.title] != null){
       requestAnimationFrame(() => window.scrollTo(0, s.recipe[sel.title])); return true;
     }
-    if (!sel && s.home && s.home.cat === cat && s.home.origin === origin && s.home.q === q()){
+    if (!sel && s.home && s.home.cat === cat && s.home.q === q()){
       requestAnimationFrame(() => window.scrollTo(0, s.home.y || 0)); return true;
     }
   }catch(e){}
   return false;
 }
-const ORIGINS = [['All','All recipes'],['social','Social media'],['parents','From my parents'],['friends','From friends & family'],['mine','My notes']];
-function renderOrigin(){
-  $('#originRow').innerHTML = ORIGINS.map(o => `<button class="chip ${o[0]===origin?'on':''}" onclick="setOrigin('${o[0]}')">${o[1]}</button>`).join('');
-}
-function setOrigin(o){ origin = o; renderOrigin(); renderList(); }
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function effTheme(){ return document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); }
@@ -140,7 +135,7 @@ function toggleTheme(){ const t = effTheme() === 'dark' ? 'light' : 'dark'; docu
 try{ const saved = localStorage.getItem('rb-theme'); if (saved) document.documentElement.setAttribute('data-theme', saved); }catch(e){}
 updateThemeBtn();
 function q(){ return $('#q').value.trim().toLowerCase(); }
-function matchItem(r){ return (cat === 'All' || r.category === cat) && (origin === 'All' || r.origin === origin) && (!q() || (r.title + ' ' + (r.ingredients||[]).join(' ') + ' ' + r.source + ' ' + (r.note||'')).toLowerCase().includes(q())); }
+function matchItem(r){ return (cat === 'All' || r.category === cat) && (!q() || (r.title + ' ' + (r.ingredients||[]).join(' ') + ' ' + r.source + ' ' + (r.note||'')).toLowerCase().includes(q())); }
 function renderChips(){
   $('#chips').innerHTML = CATS.map(c => `<button class="chip ${c===cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('');
 }
