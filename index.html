@@ -82,7 +82,7 @@ h3{font-family:"Fraunces",Georgia,serif;font-size:21px;margin:22px 0 10px}
 .done-wrap{text-align:center;padding:50px 20px}
 .done-wrap .big{font-family:"Fraunces",Georgia,serif;font-size:34px}
 .done-wrap p{color:var(--muted);margin:12px 0 24px;font-size:16px}
-.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.stepbody{flex:1;min-width:0}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{font-size:14px;line-height:1.45;color:var(--muted)}.nextlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin:18px 0 4px}@keyframes stepInNext{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}@keyframes stepInPrev{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}.cbody.anim-next{animation:stepInNext .45s ease}.cbody.anim-prev{animation:stepInPrev .45s ease}.cooking{transition:opacity .3s ease,background .3s ease}.cookall{animation:fadeIn .45s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.dots i{transition:background .35s ease,transform .35s ease}.dots i.on{transform:scale(1.5)}.cook .cfoot button{transition:transform .15s ease}.cook .cfoot button:active{transform:scale(.95)}@media (prefers-reduced-motion:reduce){.cook *{animation:none !important;transition:none !important}}</style></head>
+.stepuses{font-size:12px;color:var(--muted);margin-top:6px}.stepbody{flex:1;min-width:0}.cookneed{font-weight:700;margin:16px 0 8px;font-size:14px}.cookneed.none{font-weight:400;color:var(--muted)}.cookings{display:flex;flex-direction:column;gap:8px}.cooking{display:flex;gap:10px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-size:15px;line-height:1.35}.cooking.done{opacity:.55}.cooking input{width:20px;height:20px;margin-top:1px;accent-color:var(--terra);flex:none}.cookall{margin-top:10px;font-size:13px;color:var(--green);font-weight:600}.cookprog{font-size:12px;color:var(--muted);align-self:center;flex:none;white-space:nowrap}.swipehint{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}.upnext{font-size:14px;line-height:1.45;color:var(--muted)}.nextlabel{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);margin:18px 0 4px}@keyframes stepInNext{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}@keyframes stepInPrev{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}.cbody.anim-next{animation:stepInNext .45s ease}.cbody.anim-prev{animation:stepInPrev .45s ease}.cooking{transition:opacity .3s ease,background .3s ease}.cookall{animation:fadeIn .45s ease}@keyframes fadeIn{from{opacity:0}to{opacity:1}}.dots i{transition:background .35s ease,transform .35s ease}.dots i.on{transform:scale(1.5)}.cook .cfoot button{transition:transform .15s ease}.cook .cfoot button:active{transform:scale(.95)}@media (prefers-reduced-motion:reduce){.cook *{animation:none !important;transition:none !important}}.vartoggle{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 2px}.vartoggle .chip{cursor:pointer}.varlabel{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 0}</style></head>
 <body>
 <div id="home">
   <div class="top"><div class="toprow"><div><h1>Recipe Book</h1><p>Tap one to cook it.</p></div>
@@ -101,6 +101,7 @@ const MORE = JSON.parse(document.getElementById('moredata').textContent);
 const CATS = ["All", "Mains", "Crockpot", "Sauces & Dips", "Baking", "Breakfast", "Drinks", "Techniques"];
 let R = [];
 let cat = 'All', sel = null, checked = new Set(), step = 0;
+let varIdx = 0;
 let homeScroll = 0;
 function saveScroll(){
   try{
@@ -212,13 +213,16 @@ function renderList(){
 function openItem(i, kind, fromHash){
   if ($('#home').style.display !== 'none') homeScroll = window.scrollY;
   sel = (kind === 'recipe' ? R[i] : MORE[i]); sel._kind = kind; checked = new Set(); step = 0;
+  varIdx = 0;
+  if (kind === 'recipe' && sel.variants && sel.variants.length){ sel.ingredients = sel.variants[0].ingredients; sel.servings = sel.variants[0].servings; sel.time = sel.variants[0].time; }
   $('#cook').style.display = 'none';
   $('#home').style.display = 'none';
   const d = $('#detail'); d.style.display = 'block';
   let body = `<button class="back" onclick="goHome()">&larr; All recipes</button>
     <h2>${esc(sel.title)}</h2>
     <div class="src">${srcLabel(sel)}</div>
-    ${(sel.time || sel.servings) ? `<div class="src">${[sel.time ? '⏱ ' + esc(sel.time) : '', sel.servings ? esc(sel.servings) : ''].filter(Boolean).join(' &middot; ')}</div>` : ''}
+    ${(sel.time || sel.servings) ? `<div class="src" id="metaLine">${[sel.time ? '⏱ ' + esc(sel.time) : '', sel.servings ? esc(sel.servings) : ''].filter(Boolean).join(' &middot; ')}</div>` : ''}
+    ${kind === 'recipe' && sel.variants && sel.variants.length ? `<div class="varlabel">Batch size</div><div class="vartoggle" id="varToggle"></div><div class="note" id="varNote" style="display:none"></div>` : ''}
     ${sel.cover_data ? `<img class="hero" src="${sel.cover_data}" alt="" onerror="this.style.display='none'">` : ''}
     ${sel.url ? `<div class="postbox">
       <button class="openpost big" onclick="openPost('${sel.url}')">${sel.url.includes('instagram.com') ? 'Open original post ↗' : 'Open original recipe ↗'}</button>
@@ -237,7 +241,7 @@ function openItem(i, kind, fromHash){
     if (sel.instructions && sel.instructions.length){
       body += `<button class="start" onclick="startCook()">Start cooking &rarr;</button>
       <h3>Steps</h3>
-      <ol class="steps">${sel.instructions.map(s => { const u = stepIngs(sel, s); return `<li><div class="stepbody"><span>${esc(s)}</span>${u.length ? `<div class="stepuses">Uses: ${u.map(i => esc(coreOf(sel.ingredients[i]).join(' '))).join(', ')}</div>` : ''}</div></li>`; }).join('')}</ol>`;
+      <ol class="steps" id="stepsList">${stepsHtml()}</ol>`;
     }
   } else {
     body += `<div class="note">${esc(sel.note)}</div>`;
@@ -245,6 +249,7 @@ function openItem(i, kind, fromHash){
   }
   d.innerHTML = body;
   if (kind === 'recipe' && sel.ingredients && sel.ingredients.length) renderIng();
+  if (kind === 'recipe' && sel.variants && sel.variants.length) renderVarToggle();
   if (!fromHash || !restoreScroll()) window.scrollTo(0, 0);
   if (!fromHash) setHash();
 }
@@ -254,6 +259,31 @@ function renderIng(){
   const n = checked.size, t = sel.ingredients.length;
   $('#progLabel').textContent = n === 0 ? 'Tap each ingredient as you gather it.' : n + ' of ' + t + ' gathered';
   $('#progBar').style.width = (t ? (n / t) * 100 : 0) + '%';
+}
+function stepsHtml(){
+  return sel.instructions.map(s => { const u = stepIngs(sel, s); return `<li><div class="stepbody"><span>${esc(s)}</span>${u.length ? `<div class="stepuses">Uses: ${u.map(i => esc(coreOf(sel.ingredients[i]).join(' '))).join(', ')}</div>` : ''}</div></li>`; }).join('');
+}
+function renderSteps(){ const o = $('#stepsList'); if (o) o.innerHTML = stepsHtml(); }
+function renderVarToggle(){
+  const t = $('#varToggle'); if (!t || !sel.variants) return;
+  t.innerHTML = sel.variants.map((v, i) => `<button class="chip ${i===varIdx?'on':''}" onclick="setVariant(${i})">${esc(v.label)}</button>`).join('');
+  const n = $('#varNote');
+  if (n){ const note = (sel.variants[varIdx] && sel.variants[varIdx].note) || ''; n.textContent = note; n.style.display = note ? '' : 'none'; }
+}
+function setVariant(i){
+  if (!sel || !sel.variants || !sel.variants[i]) return;
+  varIdx = i;
+  const v = sel.variants[i];
+  sel.ingredients = v.ingredients;
+  sel.servings = v.servings;
+  sel.time = v.time;
+  checked = new Set();
+  renderVarToggle();
+  const ml = $('#metaLine');
+  if (ml) ml.innerHTML = [sel.time ? '⏱ ' + esc(sel.time) : '', sel.servings ? esc(sel.servings) : ''].filter(Boolean).join(' &middot; ');
+  renderIng();
+  renderSteps();
+  if ($('#cook').style.display === 'flex') renderCook();
 }
 function toggleIng(i){ checked.has(i) ? checked.delete(i) : checked.add(i); renderIng(); if (sel && sel.instructions) renderCook(); }
 function goHome(fromHash){
